@@ -215,11 +215,3 @@ Example:
 * SIEM integrations (Splunk, ELK)
 
 ---
-
-If you want, I can next turn this into:
-
-* a full **repo folder structure**
-* a **working Go CLI skeleton (cobra + scanner module)**
-* or a **LangGraph orchestration template**
-
-Just tell me 👍
