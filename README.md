@@ -10,32 +10,61 @@ Ghostwyre is a modular security scanning system combining a **fast Go-based scan
 # PLAN
 
 
-GhostWyre/
-├── scanner/                          ← Go engine
-│   ├── cmd/main.go                   ← CLI entry (cobra/flag)
-│   ├── internal/
-│   │   ├── crawler/                  ← Link discovery, page traversal
-│   │   ├── probe/                    ← HTTP header, TLS, DNS checks
-│   │   ├── injector/                 ← XSS, SQLi, open redirect payloads
-│   │   ├── fingerprint/              ← Tech stack detection (Wappalyzer-style)
-│   │   └── reporter/                 ← JSON/HTML output
-│   └── pkg/
-│       ├── config/                   ← YAML/env config loader
-│       └── httpclient/               ← Shared HTTP client with timeouts, retries
-│
-├── agent/                            ← Python AI layer
-│   ├── orchestrator.py               ← LangGraph graph definition
-│   ├── tools/
-│   │   ├── scan_tool.py              ← Calls Go scanner via subprocess/HTTP
-│   │   ├── vuln_lookup.py            ← NVD/CVE lookup
-│   │   └── report_tool.py            ← Summarize findings
-│   └── prompts/                      ← System prompts for each agent role
-│
-├── api/                              ← Bridge (FastAPI or Go HTTP server)
-│   └── server.py                     ← REST endpoints the agent calls
-│
-└── output/                           ← Scan results (JSON, HTML reports)
 
+```text
+GhostWyre/
+├── scanner/                          # Go scanning engine
+│   ├── cmd/
+│   │   ├── main.go                   # CLI entrypoint
+│   │   └── scan.go                   # `ghostwyre scan` command
+│   │
+│   ├── internal/
+│   │   ├── crawler/                  # Link discovery, BFS traversal
+│   │   ├── probe/                    # HTTP, TLS, DNS, security header checks
+│   │   ├── injector/                 # XSS, SQLi, open redirect payloads
+│   │   ├── fingerprint/              # Tech stack detection
+│   │   └── reporter/                 # JSON/HTML report generation
+│   │
+│   └── pkg/
+│       ├── config/                   # YAML + env configuration loader
+│       └── httpclient/               # Shared HTTP client, retries, tracing
+│
+├── agent/                            # Python AI orchestration layer
+│   ├── orchestrator.py               # LangGraph workflow
+│   │
+│   ├── tools/
+│   │   ├── scan_tool.py              # Execute Go scanner
+│   │   ├── vuln_lookup.py            # CVE/NVD enrichment
+│   │   └── report_tool.py            # Findings summarization
+│   │
+│   └── prompts/
+│       ├── planner.md
+│       ├── analyst.md
+│       ├── scorer.md
+│       └── reporter.md
+│
+├── api/                              # Service layer
+│   └── server.py                     # FastAPI endpoints
+│
+├── output/                           # Generated reports
+│   ├── scans/
+│   ├── reports/
+│   └── exports/
+│
+├── configs/
+│   ├── config.yaml
+│   └── rules.yaml
+│
+├── docs/
+│   ├── architecture.md
+│   └── roadmap.md
+│
+├── Makefile
+├── go.mod
+├── go.sum
+├── requirements.txt
+└── README.md
+```
 
 
 
