@@ -67,6 +67,9 @@ export default function ChatPanel({ session }: ChatPanelProps) {
     setMessages((prev) => [...prev, userMsg, loadingMsg])
     setIsLoading(true)
 
+
+    
+
     // Simulate AI response
     setTimeout(() => {
       setMessages((prev) =>
