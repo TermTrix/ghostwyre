@@ -1,3 +1,8 @@
 /res.log
 
 /agent/.venv
+
+
+/agent/.env
+
+**/__pycache__/*

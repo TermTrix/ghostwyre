@@ -1,3 +1,4 @@
+from xmlrpc import client
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,7 +28,7 @@ app.add_middleware(
 async def index():
     return {"status": "ok"}
 
-
+import httpx
 from app.schemas.scan import Scan
 from app.gRPC_client.grpc_client import scanner_client
 from app.generated import scan_pb2
@@ -38,13 +39,21 @@ async def scan_target(req: Scan):
         
         target = req.target
         
-        response = scanner_client.StartScan(
-            scan_pb2.ScanRequest(
-                target = target,
-                scan_type="UNKNOWN"
-            )
-        )
+        # response = scanner_client.StartScan(
+        #     scan_pb2.ScanRequest(
+        #         target = target,
+        #         scan_type="UNKNOWN"
+        #     )
+        # )
         
-        print(response)
+        async with httpx.AsyncClient() as client:
+            res = await client.get(
+                "http://localhost:8001/scan",
+                params={"target": target, "scan_type": "UNKNOWN"}
+            )
+            response = res.json()
+            return response
+        
+        # print(response)
     except Exception as error:
         print("[ERROR]", error)

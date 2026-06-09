@@ -11,7 +11,7 @@ import (
 
 func main() {
 	// Execute()
-	nmapScanner("career-lab.co.uk")
+	nmapScanner("")
 }
 
 func nmapScanner(target string) {
