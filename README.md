@@ -19,7 +19,7 @@ GhostWyre/
 │   │   └── scan.go                   # `ghostwyre scan` command
 │   │
 │   ├── internal/
-│   │   ├── crawler/                  # Link discovery, BFS traversal
+│   │   ├── crawler/                  #   
 │   │   ├── probe/                    # HTTP, TLS, DNS, security header checks
 │   │   ├── injector/                 # XSS, SQLi, open redirect payloads
 │   │   ├── fingerprint/              # Tech stack detection
