@@ -1,14 +1,23 @@
 from xmlrpc import client
-from fastapi import FastAPI
+from fastapi import FastAPI,status,HTTPException
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app.services.socker_service import sio
 from socketio import ASGIApp
+from app.services.pub_sub_mgr import GhostAgentWorker
+
+agent = GhostAgentWorker(sio=sio)
+
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("[Ghostwyre]")
+    await agent._start()
     yield
     print(":(:(")
+    await agent._stop()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -34,11 +43,23 @@ import httpx
 from app.schemas.scan import Scan
 from app.gRPC_client.grpc_client import scanner_client
 from app.generated import scan_pb2
+from uuid import uuid4
+
+@app.get('/connect')
+async def connect():
+    try:
+        client_id = str(uuid4())
+        if not client_id:
+            raise HTTPException(status_code=status.HTTP_204_NO_CONTENT,detail="Failed to connect.. :(")
+        return JSONResponse(content={"client_id":client_id},status_code=status.HTTP_201_CREATED)
+    except Exception as error:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Failed to connect.. :(")
+
+
+
 @app.post("/scan-target")
 async def scan_target(req: Scan):
     try:
-        print(req)
-        
         target = req.target
         
         # response = scanner_client.StartScan(
@@ -48,13 +69,13 @@ async def scan_target(req: Scan):
         #     )
         # )
         
-        async with httpx.AsyncClient() as client:
-            res = await client.get(
-                "http://localhost:8001/scan",
-                params={"target": target, "scan_type": "UNKNOWN"}
-            )
-            response = res.json()
-            return response
+        # async with httpx.AsyncClient() as client:
+        #     res = await client.get(
+        #         "http://localhost:8001/scan",
+        #         params={"target": target, "scan_type": "UNKNOWN"}
+        #     )
+        #     response = res.json()
+        #     return response
         
         # print(response)
     except Exception as error:

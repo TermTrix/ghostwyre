@@ -9,6 +9,10 @@ import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import type { Message, ScanSession } from "./types";
 import scanService from "@/services/scanService";
+import { useSocketManager } from "@/hooks/useSocket";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store";
 
 const DEMO_MESSAGES: Message[] = [
   {
@@ -72,9 +76,35 @@ export default function ChatPanel({ session }: ChatPanelProps) {
   const [isLoading, setIsLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  const router = useRouter();
+
+  const params = useSearchParams();
+
+  const client_id = params.get("session") ?? "";
+
+
+  const { isAgentConnected, socket_id } = useSelector(
+    (state: RootState) => state.session,
+  );
+  console.log(isAgentConnected,'[AGENT CONN}');
+  
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const { _ID ,_socket_ref} = useSocketManager({
+    sessionID: client_id,
+    isClientConnected: isAgentConnected,
+  });
+
+  const pendingMessageRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (isAgentConnected && pendingMessageRef.current && _socket_ref) {
+      _socket_ref.emit("client", { message: pendingMessageRef.current });
+      pendingMessageRef.current = null;
+    }
+  }, [isAgentConnected, _socket_ref]);
 
   const handleSend = async (text: string) => {
     const userMsg: Message = {
@@ -94,10 +124,18 @@ export default function ChatPanel({ session }: ChatPanelProps) {
     setMessages((prev) => [...prev, userMsg, loadingMsg]);
     setIsLoading(true);
 
-    await scanService.scanRequest({
-      query: text,
-    });
-
+    if (!isAgentConnected) {
+      pendingMessageRef.current = text;
+      const response = await scanService.Connect();
+      router.replace(`?session=${response.client_id}`);
+    } else {
+      _socket_ref?.emit("client", { message: text ,"session":client_id});
+    }
+    
+    // await scanService.C({
+    //   query: text,
+    // });
+    
     // Simulate AI response
     setTimeout(() => {
       setMessages((prev) =>
@@ -113,6 +151,7 @@ export default function ChatPanel({ session }: ChatPanelProps) {
       );
       setIsLoading(false);
     }, 1800);
+
   };
 
   return (

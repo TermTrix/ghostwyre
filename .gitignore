@@ -2,7 +2,7 @@
 
 /agent/.venv
 
-
+.env
 /agent/.env
 
 **/__pycache__/*

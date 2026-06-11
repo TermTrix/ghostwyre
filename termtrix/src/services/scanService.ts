@@ -5,6 +5,10 @@ interface ScanRequestType {
   query: string;
 }
 
+interface ConnectClient {
+  client_id: string;
+}
+
 class ScanService {
   private baseURL: string;
   private client: AxiosInstance;
@@ -15,6 +19,17 @@ class ScanService {
       baseURL: this.baseURL,
       responseType: "json",
     });
+  }
+
+  async Connect(): Promise<ConnectClient> {
+    try {
+      const response = await this.client.get("/connect");
+      const data = response.data;
+      return data;
+    } catch (error) {
+      console.log("[ERROR DURING CLIENT CONNECT]", error);
+      throw error;
+    }
   }
 
   async scanRequest(req: ScanRequestType) {

@@ -8,5 +8,5 @@ termtrix_:
 
 agent_:
 	@echo "Ghost Agent"
-	cd agent && uvicorn app.server:app --reload
+	cd agent && uvicorn app.server:socket_app --reload
 
