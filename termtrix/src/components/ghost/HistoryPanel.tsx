@@ -10,11 +10,11 @@ import type { ScanSession } from './types'
 
 const DEMO_HISTORY: ScanSession[] = [
   { id: '1', title: 'Scan 192.168.1.1',    target: '192.168.1.1',  preview: 'Port scan — 4 open ports found',        timestamp: new Date(Date.now() - 60000),     status: 'completed' },
-  { id: '2', title: 'Web scan google.com', target: 'google.com',   preview: 'No critical vulnerabilities detected',   timestamp: new Date(Date.now() - 3600000),   status: 'completed' },
-  { id: '3', title: 'nmap 10.0.0.0/24',   target: '10.0.0.0/24',  preview: 'Network sweep — 12 hosts discovered',    timestamp: new Date(Date.now() - 7200000),   status: 'completed' },
-  { id: '4', title: 'Vuln check nginx',    target: 'nginx server', preview: 'CVE-2023-44487 detected',                timestamp: new Date(Date.now() - 86400000),  status: 'completed' },
-  { id: '5', title: 'SSH audit 10.0.1.5', target: '10.0.1.5',     preview: 'Weak cipher suites found on port 22',    timestamp: new Date(Date.now() - 172800000), status: 'completed' },
-  { id: '6', title: 'SSL/TLS scan',        target: 'api.acme.com', preview: 'TLS 1.0 still enabled — medium risk',   timestamp: new Date(Date.now() - 259200000), status: 'failed'    },
+  // { id: '2', title: 'Web scan google.com', target: 'google.com',   preview: 'No critical vulnerabilities detected',   timestamp: new Date(Date.now() - 3600000),   status: 'completed' },
+  // { id: '3', title: 'nmap 10.0.0.0/24',   target: '10.0.0.0/24',  preview: 'Network sweep — 12 hosts discovered',    timestamp: new Date(Date.now() - 7200000),   status: 'completed' },
+  // { id: '4', title: 'Vuln check nginx',    target: 'nginx server', preview: 'CVE-2023-44487 detected',                timestamp: new Date(Date.now() - 86400000),  status: 'completed' },
+  // { id: '5', title: 'SSH audit 10.0.1.5', target: '10.0.1.5',     preview: 'Weak cipher suites found on port 22',    timestamp: new Date(Date.now() - 172800000), status: 'completed' },
+  // { id: '6', title: 'SSL/TLS scan',        target: 'api.acme.com', preview: 'TLS 1.0 still enabled — medium risk',   timestamp: new Date(Date.now() - 259200000), status: 'failed'    },
 ]
 
 function formatRelativeTime(date: Date): string {

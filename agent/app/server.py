@@ -2,8 +2,8 @@ from xmlrpc import client
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
-
-
+from app.services.socker_service import sio
+from socketio import ASGIApp
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("[Ghostwyre]")
@@ -12,6 +12,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+socket_app = ASGIApp(sio,other_asgi_app=app)
 
 origins = ["*"]
 

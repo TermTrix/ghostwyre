@@ -12,4 +12,11 @@ dependencies = [
     "msgspec>=0.21.1",
     "uvicorn>=0.49.0",
     "httpx>=0.28.1",
+    "asyncio-redis>=0.16.0",
+    "langgraph>=1.2.4",
+    "langchain>=1.3.6",
+    "langchain-openai>=1.3.0",
+    "langchain-community>=0.4.2",
+    "python-dotenv>=1.2.2",
+    "python-socketio>=5.16.2",
 ]
