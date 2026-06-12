@@ -8,6 +8,10 @@ class Settings(BaseSettings):
     REDIS_PORT:str
     REDIS_USER_NAME :str
     
+    AZURE_OPENAI_ENDPOINT:str
+    AZURE_OPENAI_API_KEY:str
+    OPENAI_API_VERSION:str
+    AZURE_OPENAI_DEPLOYMENT:str
     
          
     model_config = SettingsConfigDict(

@@ -57,10 +57,28 @@ async def connect():
 
 
 
+from app.graph.agent import ghoseAgent
+
 @app.post("/scan-target")
 async def scan_target(req: Scan):
     try:
         target = req.target
+        
+        print(target,"[TARGET]")
+        graph = await ghoseAgent()
+        
+        thread_id = str(uuid4())
+
+        config = {"configurable": {"thread_id": thread_id, "session_id": "xyz"}}
+        await graph.ainvoke(
+            {
+                "session": "12345",
+                "query":target
+            },
+            config=config,
+        )
+
+        
         
         # response = scanner_client.StartScan(
         #     scan_pb2.ScanRequest(
@@ -80,3 +98,16 @@ async def scan_target(req: Scan):
         # print(response)
     except Exception as error:
         print("[ERROR]", error)
+
+
+from app.config.modelConfig import model
+
+
+# async def test():
+#     result =await model.OpenAI.ainvoke("hi hello?")
+#     print(result)
+    
+    
+# import asyncio
+
+# asyncio.run(test())

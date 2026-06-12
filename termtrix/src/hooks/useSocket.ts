@@ -13,6 +13,8 @@ const SERVER_URL: string = "http://localhost:8000";
 
 let _socket: Socket | null = null;
 
+export const getSocket = (): Socket | null => _socket;
+
 export const useSocketManager = (session: SocketRequest) => {
   const dispatch = useDispatch<AppDispatch>();
 
@@ -28,6 +30,8 @@ export const useSocketManager = (session: SocketRequest) => {
     }
 
     const socket = _socket;
+    console.log(socket,"[FROM HOOK]");
+    
 
     socket.on("connect", () => {
       console.log("[SOCKET] Connected:", socket.id);
@@ -39,6 +43,12 @@ export const useSocketManager = (session: SocketRequest) => {
       dispatch(setAgentConnected({ isAgentConnected: false, socket_id: "" }));
     });
 
+    socket.on("agent", (data) => {
+      console.log("[AGENT]", data);
+      // handle the response here
+    });
+
+
     socket.connect();
 
     return () => {
@@ -49,6 +59,5 @@ export const useSocketManager = (session: SocketRequest) => {
 
   return {
     _ID: session.sessionID,
-    _socket_ref : _socket
   };
 };

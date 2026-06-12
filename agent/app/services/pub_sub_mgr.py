@@ -29,13 +29,16 @@ class GhostAgentWorker:
                       continue
                     data = message["data"]
 
-                    # print(type(data),"++++++++++")
+                    print(type(data),"++++++++++")
                     if isinstance(data, bytes):
                         data = data.decode("utf-8")
 
                     try:
                         payload = json.loads(data)
                         print(payload)
+                        room = payload.get("room")
+                        if room:
+                            await self.sio_client.emit("agent", payload, to=room)
                     except Exception:
                         print("❌ Failed to parse JSON from Redis")
                         continue
@@ -46,5 +49,5 @@ class GhostAgentWorker:
 
     async def _stop(self):
         if self.pub_sub:
-            await self.pub_sub.unsubscribe("ghostWyre:*")
+            await self.pub_sub.punsubscribe("ghostWyre:*")
             print("[STOPPED] -> 🛑 Unsubscribed from ghostWyre:* and closed pub/sub connection")

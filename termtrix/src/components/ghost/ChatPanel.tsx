@@ -9,7 +9,7 @@ import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import type { Message, ScanSession } from "./types";
 import scanService from "@/services/scanService";
-import { useSocketManager } from "@/hooks/useSocket";
+import { getSocket, useSocketManager } from "@/hooks/useSocket";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
@@ -82,7 +82,6 @@ export default function ChatPanel({ session }: ChatPanelProps) {
 
   const client_id = params.get("session") ?? "";
 
-
   const { isAgentConnected, socket_id } = useSelector(
     (state: RootState) => state.session,
   );
@@ -92,7 +91,7 @@ export default function ChatPanel({ session }: ChatPanelProps) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const { _ID ,_socket_ref} = useSocketManager({
+  const { _ID } = useSocketManager({
     sessionID: client_id,
     isClientConnected: isAgentConnected,
   });
@@ -100,11 +99,36 @@ export default function ChatPanel({ session }: ChatPanelProps) {
   const pendingMessageRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (isAgentConnected && pendingMessageRef.current && _socket_ref) {
-      _socket_ref.emit("client", { message: pendingMessageRef.current });
+    if (isAgentConnected) {
+      const socket = getSocket();
+      console.log("[FIRST MSG]", pendingMessageRef.current, "->>>", socket);
+      socket?.emit("client", { message: pendingMessageRef.current });
       pendingMessageRef.current = null;
     }
-  }, [isAgentConnected, _socket_ref]);
+  }, [isAgentConnected, client_id]);
+
+  useEffect(() => {
+    if (!isAgentConnected) return;
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleAgentMessage = (data: unknown) => {
+      console.log("[AGENT]", data);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.isLoading
+            ? { ...m, content: JSON.stringify(data), isLoading: false }
+            : m,
+        ),
+      );
+      setIsLoading(false);
+    };
+
+    socket.on("agent", handleAgentMessage);
+    return () => {
+      socket.off("agent", handleAgentMessage);
+    };
+  }, [isAgentConnected]);
 
   const handleSend = async (text: string) => {
     const userMsg: Message = {
@@ -124,17 +148,20 @@ export default function ChatPanel({ session }: ChatPanelProps) {
     setMessages((prev) => [...prev, userMsg, loadingMsg]);
     setIsLoading(true);
 
-    if (!isAgentConnected) {
-      pendingMessageRef.current = text;
-      const response = await scanService.Connect();
-      router.replace(`?session=${response.client_id}`);
-    } else {
-      _socket_ref?.emit("client", { message: text ,"session":client_id});
-    }
+    // if (!isAgentConnected) {
+    //   pendingMessageRef.current = text;
+    //   console.log(pendingMessageRef.current,"pendingMessageRef.current");
+      
+    //   const response = await scanService.Connect();
+    //   router.replace(`?session=${response.client_id}`);
+    // } else {
+ 
+    //   getSocket()?.emit("client", { message: text, session: client_id });
+    // }
     
-    // await scanService.C({
-    //   query: text,
-    // });
+    await scanService.scanRequest({
+      query: text,
+    });
     
     // Simulate AI response
     setTimeout(() => {

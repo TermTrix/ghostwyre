@@ -34,6 +34,7 @@ async def client_message(sid, data):
         message=json.dumps(
             {
                 "type": "ghostWyre",
+                "payload":data,
                 "room": sid,
             }
         ),
