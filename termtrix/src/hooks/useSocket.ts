@@ -1,5 +1,8 @@
 import { useDispatch } from "react-redux";
-import { setAgentConnected } from "@/store/reducers/sessionSlice";
+import {
+  setAgentConnected,
+  setGhostMessages,
+} from "@/store/reducers/sessionSlice";
 import { useEffect } from "react";
 import { io, Socket } from "socket.io-client";
 import type { AppDispatch } from "@/store";
@@ -7,6 +10,11 @@ import type { AppDispatch } from "@/store";
 interface SocketRequest {
   sessionID: string;
   isClientConnected: boolean;
+}
+
+interface GhostRsponse {
+  id: string;
+  content: string;
 }
 
 const SERVER_URL: string = "http://localhost:8000";
@@ -30,12 +38,16 @@ export const useSocketManager = (session: SocketRequest) => {
     }
 
     const socket = _socket;
-    console.log(socket,"[FROM HOOK]");
-    
+    console.log(socket, "[FROM HOOK]");
 
     socket.on("connect", () => {
       console.log("[SOCKET] Connected:", socket.id);
-      dispatch(setAgentConnected({ isAgentConnected: true, socket_id: socket.id ?? "" }));
+      dispatch(
+        setAgentConnected({
+          isAgentConnected: true,
+          socket_id: socket.id ?? "",
+        }),
+      );
     });
 
     socket.on("disconnect", () => {
@@ -43,11 +55,19 @@ export const useSocketManager = (session: SocketRequest) => {
       dispatch(setAgentConnected({ isAgentConnected: false, socket_id: "" }));
     });
 
-    socket.on("agent", (data) => {
+    socket.on("agent", (data: GhostRsponse) => {
       console.log("[AGENT]", data);
+      dispatch(
+        setGhostMessages({
+          id: data.id,
+          content: data.content,
+          role: "assistant",
+          timestamp: new Date(),
+          isLoading: false,
+        }),
+      );
       // handle the response here
     });
-
 
     socket.connect();
 

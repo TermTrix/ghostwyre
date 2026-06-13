@@ -11,8 +11,9 @@ import type { Message, ScanSession } from "./types";
 import scanService from "@/services/scanService";
 import { getSocket, useSocketManager } from "@/hooks/useSocket";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/store";
+import { setGhostMessages } from "@/store/reducers/sessionSlice";
 
 const DEMO_MESSAGES: Message[] = [
   {
@@ -72,21 +73,21 @@ interface ChatPanelProps {
 }
 
 export default function ChatPanel({ session }: ChatPanelProps) {
-  const [messages, setMessages] = useState<Message[]>(DEMO_MESSAGES);
+  // const [messages, setMessages] = useState<Message[]>(DEMO_MESSAGES);
   const [isLoading, setIsLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
-
   const params = useSearchParams();
-
+  const dispatch = useDispatch();
+ 
   const client_id = params.get("session") ?? "";
 
-  const { isAgentConnected, socket_id } = useSelector(
+  const { isAgentConnected, socket_id,messages } = useSelector(
     (state: RootState) => state.session,
   );
-  console.log(isAgentConnected,'[AGENT CONN}');
-  
+  console.log(isAgentConnected, "[AGENT CONN}");
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -99,10 +100,14 @@ export default function ChatPanel({ session }: ChatPanelProps) {
   const pendingMessageRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (isAgentConnected) {
+    if (isAgentConnected && pendingMessageRef.current) {
       const socket = getSocket();
       console.log("[FIRST MSG]", pendingMessageRef.current, "->>>", socket);
-      socket?.emit("client", { message: pendingMessageRef.current });
+      socket?.emit("client", {
+        message: pendingMessageRef.current,
+        client_id: client_id,
+        first_msg: true,
+      });
       pendingMessageRef.current = null;
     }
   }, [isAgentConnected, client_id]);
@@ -114,13 +119,13 @@ export default function ChatPanel({ session }: ChatPanelProps) {
 
     const handleAgentMessage = (data: unknown) => {
       console.log("[AGENT]", data);
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.isLoading
-            ? { ...m, content: JSON.stringify(data), isLoading: false }
-            : m,
-        ),
-      );
+      // setMessages((prev) =>
+      //   prev.map((m) =>
+      //     m.isLoading
+      //       ? { ...m, content: JSON.stringify(data), isLoading: false }
+      //       : m,
+      //   ),
+      // );
       setIsLoading(false);
     };
 
@@ -145,40 +150,57 @@ export default function ChatPanel({ session }: ChatPanelProps) {
       isLoading: true,
     };
 
-    setMessages((prev) => [...prev, userMsg, loadingMsg]);
+    // setMessages((prev) => [...prev, userMsg, loadingMsg]);
+
+    dispatch(
+      setGhostMessages({
+        id: Date.now().toString(),
+        role: "user",
+        content: text,
+        timestamp: new Date(),
+      }),
+    );
     setIsLoading(true);
 
-    // if (!isAgentConnected) {
-    //   pendingMessageRef.current = text;
-    //   console.log(pendingMessageRef.current,"pendingMessageRef.current");
-      
-    //   const response = await scanService.Connect();
-    //   router.replace(`?session=${response.client_id}`);
-    // } else {
- 
-    //   getSocket()?.emit("client", { message: text, session: client_id });
-    // }
-    
+    if (!isAgentConnected) {
+      pendingMessageRef.current = text;
+      console.log(pendingMessageRef.current, "pendingMessageRef.current");
+
+      const response = await scanService.Connect();
+      router.replace(`?session=${response.client_id}`);
+    } else {
+      getSocket()?.emit("client", { message: text, session: client_id });
+    }
+
     await scanService.scanRequest({
       query: text,
     });
-    
+
     // Simulate AI response
     setTimeout(() => {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === loadingMsg.id
-            ? {
-                ...m,
-                content: `Analyzing target from: "${text}". Running scan modules...`,
-                isLoading: false,
-              }
-            : m,
-        ),
+      // setMessages((prev) =>
+      //   prev.map((m) =>
+      //     m.id === loadingMsg.id
+      //       ? {
+      //           ...m,
+      //           content: `Analyzing target from: "${text}". Running scan modules...`,
+      //           isLoading: false,
+      //         }
+      //       : m,
+      //   ),
+      // );
+
+      dispatch(
+        setGhostMessages({
+          id: Date.now().toString(),
+          role: "assistant",
+          content: `Analyzing target from: "${text}". Running scan modules...`,
+          timestamp: new Date(),
+        }),
       );
+
       setIsLoading(false);
     }, 1800);
-
   };
 
   return (
@@ -208,7 +230,7 @@ export default function ChatPanel({ session }: ChatPanelProps) {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 py-6">
-        {messages.map((msg) => (
+        {messages?.map((msg) => (
           <ChatMessage key={msg.id} message={msg} />
         ))}
         <div ref={bottomRef} />
