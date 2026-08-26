@@ -19,3 +19,19 @@ protoc \
   --go_out=scanner \
   --go-grpc_out=scanner \
   proto/scan.proto
+
+
+
+  START
+  ↓
+[parse_intent]      ← classify: scan / analyze / report / explain
+  ↓
+[plan_steps]        ← LLM breaks query into tool calls + steps
+  ↓                   publishes: "Planning: I'll run nmap then analyze..."
+[execute_tools]     ← runs actual tools (nmap, whois, etc.)
+  ↓                   publishes each tool result as it completes
+[synthesize]        ← LLM combines tool outputs into findings
+  ↓                   publishes: "Here's what I found..."
+[stream_response]   ← final formatted response to client
+  ↓
+END

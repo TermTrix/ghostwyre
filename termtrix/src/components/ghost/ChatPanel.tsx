@@ -190,14 +190,14 @@ export default function ChatPanel({ session }: ChatPanelProps) {
       //   ),
       // );
 
-      dispatch(
-        setGhostMessages({
-          id: Date.now().toString(),
-          role: "assistant",
-          content: `Analyzing target from: "${text}". Running scan modules...`,
-          timestamp: new Date(),
-        }),
-      );
+      // dispatch(
+      //   setGhostMessages({
+      //     id: Date.now().toString(),
+      //     role: "assistant",
+      //     content: `Analyzing target from: "${text}". Running scan modules...`,
+      //     timestamp: new Date(),
+      //   }),
+      // );
 
       setIsLoading(false);
     }, 1800);

@@ -12,7 +12,7 @@ func main() {
 
 	r := gin.Default()
 
-	r.GET("/scan", scanHandler)
+	r.GET("/scan-headers", scanHandler)
 	fmt.Println("Server running on :8001")
 
 	r.Run(":8001")

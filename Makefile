@@ -10,3 +10,7 @@ agent_:
 	@echo "Ghost Agent"
 	cd agent && uvicorn app.server:socket_app --reload
 
+
+ghost:
+	@echo "Ghost Agent"
+	cd agent && uvicorn mcp_server.server:app --host 127.0.0.1 --port 8001 --reload

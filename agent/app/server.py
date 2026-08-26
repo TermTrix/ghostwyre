@@ -108,6 +108,9 @@ from app.config.modelConfig import model
 #     print(result)
     
     
-# import asyncio
+import asyncio
 
 # asyncio.run(test())
+
+
+

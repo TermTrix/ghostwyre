@@ -1,5 +1,6 @@
-from typing import TypedDict, Dict, List, Any,Optional
+from typing import TypedDict, Dict, List, Any,Optional,Annotated
 from app.schemas.agent_schemas import ParsedIntent
+from langgraph.graph.message import add_messages
 
 class GhostState(TypedDict):
     sid: str
@@ -10,4 +11,5 @@ class GhostState(TypedDict):
     tool_results: List[Dict]
     session: str
     response: str
+    messages:Annotated[list,add_messages]
     
