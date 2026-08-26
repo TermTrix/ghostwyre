@@ -1,8 +1,39 @@
-/res.log
-
-/agent/.venv
-
+# Environment variables
 .env
+.env.local
+.env.*.local
+.env.production.local
 /agent/.env
 
+# Dependencies
+/agent/.venv
+node_modules/
+.venv/
+
+# Python
 **/__pycache__/*
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Logs
+/res.log
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Credentials (explicit safety)
+*.key
+*.pem
+secrets.json
+credentials.json
