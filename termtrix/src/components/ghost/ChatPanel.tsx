@@ -15,58 +15,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import { setGhostMessages } from "@/store/reducers/sessionSlice";
 
-const DEMO_MESSAGES: Message[] = [
-  {
-    id: "1",
-    role: "assistant",
-    content:
-      "Welcome to GhostWyre. I can scan networks, check for vulnerabilities, and analyze web targets. Tell me what to scan.",
-    timestamp: new Date(Date.now() - 120000),
-  },
-  {
-    id: "2",
-    role: "user",
-    content: "Scan 192.168.1.1 for open ports",
-    timestamp: new Date(Date.now() - 90000),
-  },
-  {
-    id: "3",
-    role: "assistant",
-    content:
-      "Port scan complete on 192.168.1.1. Found 4 open ports. Port 3306 (MySQL) with no auth detected — high risk.",
-    timestamp: new Date(Date.now() - 60000),
-    scanResults: [
-      {
-        port: 22,
-        service: "SSH",
-        state: "open",
-        risk: "low",
-        version: "OpenSSH 8.9",
-      },
-      {
-        port: 80,
-        service: "HTTP",
-        state: "open",
-        risk: "medium",
-        version: "nginx 1.22",
-      },
-      {
-        port: 443,
-        service: "HTTPS",
-        state: "open",
-        risk: "info",
-        version: "nginx 1.22",
-      },
-      {
-        port: 3306,
-        service: "MySQL",
-        state: "open",
-        risk: "critical",
-        version: "8.0.32",
-      },
-    ],
-  },
-];
+
 
 interface ChatPanelProps {
   session: ScanSession;
@@ -86,7 +35,6 @@ export default function ChatPanel({ session }: ChatPanelProps) {
   const { isAgentConnected, socket_id,messages } = useSelector(
     (state: RootState) => state.session,
   );
-  console.log(isAgentConnected, "[AGENT CONN}");
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

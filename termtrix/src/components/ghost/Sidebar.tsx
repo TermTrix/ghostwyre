@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/components/providers/AuthProvider'
 import {
   Shield,
   Plus,
@@ -38,6 +40,13 @@ const NAV_ITEMS = [
 
 export default function GhostSidebar() {
   const [active, setActive] = useState('Explore')
+  const router = useRouter()
+  const { user, signOut } = useAuth()
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.replace('/signin')
+  }
 
   return (
     <Sidebar collapsible="none">
@@ -100,9 +109,33 @@ export default function GhostSidebar() {
           </CardContent>
         </Card>
 
+        {user && (
+          <div className="flex items-center gap-2.5 px-2 py-1.5">
+            {user.photoURL ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={user.photoURL}
+                alt=""
+                className="size-7 shrink-0 rounded-full"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-xs font-medium text-emerald-400">
+                {(user.displayName ?? user.email ?? '?').charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-medium">{user.displayName}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {user.email}
+              </p>
+            </div>
+          </div>
+        )}
+
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton>
+            <SidebarMenuButton onClick={handleSignOut}>
               <LogOut />
               <span>Log out</span>
             </SidebarMenuButton>
