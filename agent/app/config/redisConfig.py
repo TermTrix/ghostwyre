@@ -15,6 +15,9 @@ class RedisConfig:
         aio_redis = Redis(host=settings.REDIS_HOST, username=settings.REDIS_USER_NAME, port=6379)
         return aio_redis
     
+    async def storeSession(self):
+        self.async_instance.setex()
+    
 init_redis = RedisConfig()
 
 redis_client = init_redis.async_instance

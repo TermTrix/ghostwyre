@@ -25,4 +25,7 @@ dependencies = [
     "langchain-groq>=1.1.3",
     "fastmcp>=3.4.2",
     "langchain-mcp-adapters>=0.3.0",
+    "arq-worker>=0.0.0a0",
+    "google-auth>=2.53.0",
+    "firebase-admin>=7.5.0",
 ]

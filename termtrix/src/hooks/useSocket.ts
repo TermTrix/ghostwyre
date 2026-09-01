@@ -34,6 +34,7 @@ export const useSocketManager = (session: SocketRequest) => {
         autoConnect: false,
         reconnectionAttempts: Infinity,
         reconnectionDelay: 2000,
+        withCredentials:true
       });
     }
 

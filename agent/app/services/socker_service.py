@@ -1,6 +1,7 @@
 import socketio
 from app.config.credentials import settings
 from app.config.redisConfig import redis_client
+from app.config.firebase import verify_socket_token
 import json
 
 mgr = socketio.AsyncRedisManager(
@@ -17,8 +18,15 @@ sio = socketio.AsyncServer(
 
 
 @sio.event
-async def connect(sid, environ):
-    print(f"Client connected: {sid}--->>>>>")
+async def connect(sid, environ, auth):
+    payload = verify_socket_token(environ)
+    print(payload,"------------")
+    if not payload:
+        # Rejects the handshake; the client receives a `connect_error`.
+        raise ConnectionRefusedError("unauthorized")
+
+    await sio.save_session(sid, {"user": payload})
+    print(f"Client connected: {sid} ({payload.get('email')})")
 
 
 @sio.event

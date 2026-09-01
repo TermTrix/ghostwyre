@@ -18,6 +18,7 @@ class ScanService {
     this.client = axios.create({
       baseURL: this.baseURL,
       responseType: "json",
+      withCredentials:true
     });
   }
 
@@ -25,6 +26,8 @@ class ScanService {
     try {
       const response = await this.client.get("/connect");
       const data = response.data;
+      console.log(data,"DATA");
+      
       return data;
     } catch (error) {
       console.log("[ERROR DURING CLIENT CONNECT]", error);
