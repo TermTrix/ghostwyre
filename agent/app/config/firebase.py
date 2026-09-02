@@ -34,12 +34,11 @@ class TokeResponse(BaseModel):
     
     
 def verify_socket_token(environ:dict) -> dict:
-    cookie = environ.get("HTTP_COOKIE", "")
-    print(cookie,"____COOKIE")
-  
+    cookie = environ.get("HTTP_COOKIE", "")  
     token = cookie.split("=")
+    print(f"Token from cookie: {token}")
     if len(token)!=2 :
-        raise None
+        return None
     try:
         app = _get_app()
 

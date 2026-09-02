@@ -3,4 +3,5 @@ from pydantic import BaseModel
 
 class Scan(BaseModel):
     target: str
+    session : str
 

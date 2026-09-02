@@ -2,6 +2,7 @@ from app.graph.state import GhostState
 from app.config.modelConfig import model
 from app.schemas.agent_schemas import ParsedIntent, StucturePlaning,ChatResponse
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import HumanMessage, AIMessage
 from app.config.redisConfig import redis_client
 import json
 
@@ -43,6 +44,8 @@ async def parse_node(state: GhostState) -> GhostState:
         return {
             "intent": result.intent,
             "parsed": result.model_dump(),
+            # Record the user's turn so history accumulates across messages.
+            "messages": [HumanMessage(content=state["query"])],
         }
     except Exception as error:
         print("[ERROR parse_node]", error)
@@ -86,10 +89,11 @@ async def chat_node(state:GhostState) -> GhostState:
                 }
             ),
         )
-        state['messages'] = result.message
-        print('[STATE]',state)
+        # Return an AIMessage so the add_messages reducer appends it to history
+        # (assigning a raw string here silently corrupted the message list).
+        return {"messages": [AIMessage(content=result.message)]}
     except Exception as error:
-        pass
+        print("[ERROR chat_node]", error)
 
 
 # PLANNING NODE

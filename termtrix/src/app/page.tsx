@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import GhostSidebar from '@/components/ghost/Sidebar'
@@ -20,7 +21,11 @@ export default function Home() {
       <SidebarProvider>
         <div className="flex h-svh w-full overflow-hidden">
           <GhostSidebar />
-          <ChatPanel session={ACTIVE_SESSION} />
+          {/* ChatPanel reads the `?session=` param with useSearchParams, which
+              bails out of prerendering unless it sits under a boundary. */}
+          <Suspense fallback={<div className="flex-1" />}>
+            <ChatPanel session={ACTIVE_SESSION} />
+          </Suspense>
           <HistoryPanel activeId="1" />
         </div>
       </SidebarProvider>

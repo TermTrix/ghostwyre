@@ -1,8 +1,8 @@
 import axios, { AxiosInstance } from "axios";
-import Error from "next/error";
 
 interface ScanRequestType {
   query: string;
+  session:string
 }
 
 interface ConnectClient {
@@ -35,14 +35,20 @@ class ScanService {
     }
   }
 
+  // Non-streaming entry point. The chat flow does NOT use this — it runs the
+  // agent over the socket, which is the only path that can stream progress back.
   async scanRequest(req: ScanRequestType) {
     try {
       const response = await this.client.post("/scan-target", {
         target: req.query,
+        session: req.session,
       });
 
       console.log(response.data);
-    } catch (error) {}
+    } catch (error) {
+      console.log("[ERROR DURING SCAN REQUEST]", error);
+      throw error;
+    }
   }
 }
 

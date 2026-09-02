@@ -19,10 +19,16 @@ agent = GhostAgentWorker(sio=sio)
 
 
 
+from app.graph.agent import build_graph
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("[Ghostwyre]")
     await agent._start()
+    # Compile the LangGraph agent once (fetches MCP tools) so the first chat
+    # message doesn't pay the build cost.
+    await build_graph()
     yield
     print(":(:(")
     await agent._stop()
@@ -105,22 +111,19 @@ async def connect(user:CurrentUser):
 from app.graph.agent import ghoseAgent
 
 @app.post("/scan-target")
-async def scan_target(req: Scan,user:CurrentUser):
+async def scan_target(req: Scan,user = Depends(verify_user_token)):
     try:
         
-        print("USER",user)
+        print("USER-------------",user)
         target = req.target
         graph = await ghoseAgent()
-        
         thread_id = user['uid']
-        
-        
-        
-        config = {"configurable": {"thread_id": thread_id, "session_id": "xyz"}}
+        print("SESSION ID",req.session)
+        config = {"configurable": {"thread_id": thread_id, "session_id": req.session}}
         
         await graph.ainvoke(
             {
-                "session": "12345",
+                "session": req.session,
                 "query":target
             },
             config=config,

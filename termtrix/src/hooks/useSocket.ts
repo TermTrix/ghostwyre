@@ -9,7 +9,6 @@ import type { AppDispatch } from "@/store";
 
 interface SocketRequest {
   sessionID: string;
-  isClientConnected: boolean;
 }
 
 interface GhostRsponse {
@@ -23,25 +22,32 @@ let _socket: Socket | null = null;
 
 export const getSocket = (): Socket | null => _socket;
 
+const ensureSocket = (): Socket => {
+  if (!_socket) {
+    _socket = io(SERVER_URL, {
+      autoConnect: false,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 2000,
+      withCredentials: true,
+    });
+  }
+  return _socket;
+};
+
 export const useSocketManager = (session: SocketRequest) => {
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    if (!session.sessionID || session.isClientConnected) return;
+    if (!session.sessionID) return;
 
-    if (!_socket) {
-      _socket = io(SERVER_URL, {
-        autoConnect: false,
-        reconnectionAttempts: Infinity,
-        reconnectionDelay: 2000,
-        withCredentials:true
-      });
-    }
+    const socket = ensureSocket();
 
-    const socket = _socket;
-    console.log(socket, "[FROM HOOK]");
-
-    socket.on("connect", () => {
+    // Named handlers so the cleanup can remove exactly what it added. The
+    // socket is a module singleton that outlives the component, so anonymous
+    // listeners (or a cleanup that forgets one) stack up on every re-run and
+    // every agent event gets dispatched once per stacked listener — that was
+    // the duplicate-message bug.
+    const onConnect = () => {
       console.log("[SOCKET] Connected:", socket.id);
       dispatch(
         setAgentConnected({
@@ -49,14 +55,14 @@ export const useSocketManager = (session: SocketRequest) => {
           socket_id: socket.id ?? "",
         }),
       );
-    });
+    };
 
-    socket.on("disconnect", () => {
+    const onDisconnect = () => {
       console.log("[SOCKET] Disconnected");
       dispatch(setAgentConnected({ isAgentConnected: false, socket_id: "" }));
-    });
+    };
 
-    socket.on("agent", (data: GhostRsponse) => {
+    const onAgent = (data: GhostRsponse) => {
       console.log("[AGENT]", data);
       dispatch(
         setGhostMessages({
@@ -67,16 +73,26 @@ export const useSocketManager = (session: SocketRequest) => {
           isLoading: false,
         }),
       );
-      // handle the response here
-    });
+    };
 
-    socket.connect();
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    socket.on("agent", onAgent);
+
+    if (socket.connected) {
+      // Already up from an earlier mount (StrictMode remount / route change):
+      // no `connect` event will fire, so sync the store by hand.
+      onConnect();
+    } else {
+      socket.connect();
+    }
 
     return () => {
-      socket.off("connect");
-      socket.off("disconnect");
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.off("agent", onAgent);
     };
-  }, [session.sessionID, session.isClientConnected, dispatch]);
+  }, [session.sessionID, dispatch]);
 
   return {
     _ID: session.sessionID,

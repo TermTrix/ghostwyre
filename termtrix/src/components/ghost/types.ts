@@ -19,7 +19,7 @@ export interface Message {
   role: MessageRole
   content: string
   timestamp: Date
-  // scanResults?: ScanResult[]
+  scanResults?: ScanResult[]
   isLoading?: boolean
 }
 

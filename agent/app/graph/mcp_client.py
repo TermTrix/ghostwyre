@@ -1,5 +1,5 @@
 from langchain_mcp_adapters.client import MultiServerMCPClient
-from mcp.client.streamable_http import streamablehttp_client
+from mcp.client.streamable_http import streamable_http_client
 client = MultiServerMCPClient(
     {"ghost_tools": {"transport": "http", "url": "http://localhost:8001/api/mcp/"}}
 )

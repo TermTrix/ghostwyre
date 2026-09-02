@@ -7,7 +7,8 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
-import type { Message, ScanSession } from "./types";
+import ThinkingIndicator from "./ThinkingIndicator";
+import type { ScanSession } from "./types";
 import scanService from "@/services/scanService";
 import { getSocket, useSocketManager } from "@/hooks/useSocket";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -23,8 +24,11 @@ interface ChatPanelProps {
 
 export default function ChatPanel({ session }: ChatPanelProps) {
   // const [messages, setMessages] = useState<Message[]>(DEMO_MESSAGES);
-  const [isLoading, setIsLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  // Id of the message whose reply we gave up waiting for (failsafe below).
+  const [timedOutMessageId, setTimedOutMessageId] = useState<string | null>(
+    null,
+  );
 
   const router = useRouter();
   const params = useSearchParams();
@@ -32,18 +36,31 @@ export default function ChatPanel({ session }: ChatPanelProps) {
  
   const client_id = params.get("session") ?? "";
 
-  const { isAgentConnected, socket_id,messages } = useSelector(
+  const { isAgentConnected, messages } = useSelector(
     (state: RootState) => state.session,
   );
 
+  useSocketManager({ sessionID: client_id });
+
+  // Derived, not stored: we're waiting exactly while the newest message is the
+  // user's own. `agent` events are handled once, in useSocketManager, so the
+  // indicator disappears the moment the first reply lands in the store.
+  const lastMessage = messages?.at(-1);
+  const isLoading =
+    lastMessage?.role === "user" && lastMessage.id !== timedOutMessageId;
+
+  // Failsafe: if the agent never answers (error, dropped socket), don't leave
+  // the composer disabled behind an indicator that spins forever.
+  useEffect(() => {
+    if (!isLoading || !lastMessage) return;
+    const pendingId = lastMessage.id;
+    const timer = setTimeout(() => setTimedOutMessageId(pendingId), 60_000);
+    return () => clearTimeout(timer);
+  }, [isLoading, lastMessage]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const { _ID } = useSocketManager({
-    sessionID: client_id,
-    isClientConnected: isAgentConnected,
-  });
+  }, [messages, isLoading]);
 
   const pendingMessageRef = useRef<string | null>(null);
 
@@ -60,95 +77,27 @@ export default function ChatPanel({ session }: ChatPanelProps) {
     }
   }, [isAgentConnected, client_id]);
 
-  useEffect(() => {
-    if (!isAgentConnected) return;
-    const socket = getSocket();
-    if (!socket) return;
-
-    const handleAgentMessage = (data: unknown) => {
-      console.log("[AGENT]", data);
-      // setMessages((prev) =>
-      //   prev.map((m) =>
-      //     m.isLoading
-      //       ? { ...m, content: JSON.stringify(data), isLoading: false }
-      //       : m,
-      //   ),
-      // );
-      setIsLoading(false);
-    };
-
-    socket.on("agent", handleAgentMessage);
-    return () => {
-      socket.off("agent", handleAgentMessage);
-    };
-  }, [isAgentConnected]);
-
   const handleSend = async (text: string) => {
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: text,
-      timestamp: new Date(),
-    };
-    const loadingMsg: Message = {
-      id: (Date.now() + 1).toString(),
-      role: "assistant",
-      content: "",
-      timestamp: new Date(),
-      isLoading: true,
-    };
-
-    // setMessages((prev) => [...prev, userMsg, loadingMsg]);
+    if (isLoading) return;
 
     dispatch(
       setGhostMessages({
-        id: Date.now().toString(),
+        id: crypto.randomUUID(),
         role: "user",
         content: text,
         timestamp: new Date(),
       }),
     );
-    setIsLoading(true);
 
     if (!isAgentConnected) {
+      // `/connect` only mints the session. The message itself is held until the
+      // socket is up, because the agent streams back to the socket's sid.
       pendingMessageRef.current = text;
-      console.log(pendingMessageRef.current, "pendingMessageRef.current");
-
       const response = await scanService.Connect();
       router.replace(`?session=${response.client_id}`);
     } else {
-      getSocket()?.emit("client", { message: text, session: client_id });
+      getSocket()?.emit("client", { message: text, client_id: client_id });
     }
-
-    await scanService.scanRequest({
-      query: text,
-    });
-
-    // Simulate AI response
-    setTimeout(() => {
-      // setMessages((prev) =>
-      //   prev.map((m) =>
-      //     m.id === loadingMsg.id
-      //       ? {
-      //           ...m,
-      //           content: `Analyzing target from: "${text}". Running scan modules...`,
-      //           isLoading: false,
-      //         }
-      //       : m,
-      //   ),
-      // );
-
-      // dispatch(
-      //   setGhostMessages({
-      //     id: Date.now().toString(),
-      //     role: "assistant",
-      //     content: `Analyzing target from: "${text}". Running scan modules...`,
-      //     timestamp: new Date(),
-      //   }),
-      // );
-
-      setIsLoading(false);
-    }, 1800);
   };
 
   return (
@@ -181,6 +130,7 @@ export default function ChatPanel({ session }: ChatPanelProps) {
         {messages?.map((msg) => (
           <ChatMessage key={msg.id} message={msg} />
         ))}
+        {isLoading && <ThinkingIndicator />}
         <div ref={bottomRef} />
       </div>
 

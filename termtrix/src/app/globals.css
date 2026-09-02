@@ -300,3 +300,90 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(102, 227, 253, 0.4);
 }
+
+/* Ghost thinking indicator */
+@keyframes ghost-dot {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  30% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+.animate-ghost-dot {
+  animation: ghost-dot 1.2s ease-in-out infinite;
+}
+
+@keyframes ghost-halo {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  70%,
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+
+.animate-ghost-halo {
+  animation: ghost-halo 2s ease-out infinite;
+}
+
+@keyframes ghost-sweep {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(330%);
+  }
+}
+
+.animate-ghost-sweep {
+  animation: ghost-sweep 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes ghost-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.animate-ghost-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--muted-foreground) 0%,
+    var(--muted-foreground) 35%,
+    var(--foreground) 50%,
+    var(--muted-foreground) 65%,
+    var(--muted-foreground) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: ghost-shimmer 2.2s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ghost-dot,
+  .animate-ghost-halo,
+  .animate-ghost-sweep,
+  .animate-ghost-shimmer {
+    animation: none;
+  }
+  .animate-ghost-shimmer {
+    color: var(--muted-foreground);
+    background-image: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+  }
+}
