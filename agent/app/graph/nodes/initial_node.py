@@ -5,10 +5,6 @@ async def initial_node(state : GhostState) -> GhostState:
     try:
         session = state['session']
         # message = state['client_message']
-        
-        print(state)
-        
-        print(session,"__>>>")
         return {
             "room":"HELLLLO",
             "session":"helllo"

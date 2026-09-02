@@ -2,8 +2,8 @@ from fastmcp import FastMCP
 
 from starlette.applications import Starlette
 from starlette.routing import Mount
-from .tools.web_header_scan import register_ghost_tools
-
+from .tools.web_header_scan import build_web_server
+from .tools.network.icmp import build_network_server
 
 from fastmcp.server.event_store import EventStore
 from key_value.aio.stores.redis import RedisStore
@@ -22,14 +22,10 @@ ROOT_URL = "http://localhost:8002"
 MOUNT_PREFIX = "/api"
 MCP_PATH = "/mcp"
 
+mcp = FastMCP(name="GhostWyre")
 
-def create_ghost_mcp_tools():
-    mcp = FastMCP(name="GhostWyre")
-    register_ghost_tools(mcp)
-    return mcp
-
-
-mcp = create_ghost_mcp_tools()
+mcp.mount(build_web_server(), namespace="web")
+mcp.mount(build_network_server(), namespace="network")
 
 
 mcp_app = mcp.http_app(path=MCP_PATH,event_store=event_store)
@@ -38,6 +34,7 @@ mcp_app = mcp.http_app(path=MCP_PATH,event_store=event_store)
 app = Starlette(
     routes=[
         Mount(MOUNT_PREFIX, app=mcp_app),
+        
     ],
     lifespan=mcp_app.lifespan,
 )

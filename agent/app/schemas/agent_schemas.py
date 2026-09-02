@@ -12,7 +12,7 @@ class ParsedIntent(BaseModel):
 
 
 class PlanStep(BaseModel):
-    tool: Literal["nmap_scan", "whois_lookup", "dns_enum", "cve_lookup","vul_scan"]
+    tool: Literal["icmp_scan","port-scan"]
     reason: str  
 
 class StucturePlaning(BaseModel):

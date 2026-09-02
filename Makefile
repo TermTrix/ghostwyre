@@ -1,6 +1,6 @@
 go:
 	@echo "GhostWyre starting"
-	cd api && go run main.go
+	cd scanner_/cmd  && go run main.go
 
 termtrix_:
 	@echo "Termtrix starting"
